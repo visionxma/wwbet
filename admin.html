@@ -137,13 +137,14 @@
 
     <!-- Lista de números -->
     <div class="panel-box">
-      <h2>📱 Números cadastrados <span class="small" style="font-weight:400;font-size:12px;">(rodízio igual entre os ativos)</span></h2>
+      <h2>📱 Números cadastrados <span class="small" id="distMode" style="font-weight:400;font-size:12px;"></span></h2>
       <table>
         <thead>
           <tr>
             <th>Rótulo / Número</th>
+            <th style="text-align:center;">% Envio</th>
             <th class="hide-m">Cliques</th>
-            <th class="hide-m">Participação</th>
+            <th class="hide-m">Participação real</th>
             <th style="text-align:center;">Ativo</th>
             <th style="text-align:right;">Ações</th>
           </tr>
@@ -220,7 +221,7 @@
     const url = 'https://wa.me/' + number + (msg ? '?text=' + encodeURIComponent(msg) : '');
     await addDoc(linksCol, {
       label, number, message: msg, url,
-      active: true, clicks: 0,
+      active: true, clicks: 0, weight: 0,
       order: Date.now(), createdAt: serverTimestamp()
     });
     e.target.reset();
@@ -234,12 +235,27 @@
         .sort((a, b) => (a.order || 0) - (b.order || 0));
 
       const total = links.reduce((s, l) => s + (l.clicks || 0), 0);
-      const active = links.filter(l => l.active !== false).length;
+      const activeLinks = links.filter(l => l.active !== false);
+      const active = activeLinks.length;
       const top = [...links].sort((a, b) => (b.clicks || 0) - (a.clicks || 0))[0];
+
+      // Soma dos pesos apenas dos ativos (é o que o site usa pra distribuir)
+      const activeTotalW = activeLinks.reduce((s, l) => s + (Number(l.weight) || 0), 0);
 
       $('statTotal').textContent = total;
       $('statActive').textContent = active;
       $('statTop').textContent = (top && (top.clicks || 0) > 0) ? top.label : '—';
+
+      // Indicador do modo de distribuição
+      const dm = $('distMode');
+      if (activeTotalW > 0) {
+        const sum100 = activeTotalW === 100 ? '' : ` — soma dos ativos: ${activeTotalW} (será normalizado p/ 100%)`;
+        dm.textContent = `(distribuição por porcentagem${sum100})`;
+        dm.style.color = activeTotalW === 100 ? 'var(--green)' : '#ffc400';
+      } else {
+        dm.textContent = '(rodízio igual entre os ativos — defina os % abaixo para personalizar)';
+        dm.style.color = '';
+      }
 
       const body = $('linksBody');
       body.innerHTML = '';
@@ -251,11 +267,25 @@
         const clicks = l.clicks || 0;
         const pct = total ? Math.round((clicks / total) * 100) : 0;
         const isTop = top && top.id === l.id && clicks > 0;
+        const weight = Number(l.weight) || 0;
+        const isActive = l.active !== false;
+
+        // % de envio configurado (normalizado entre os ativos)
+        let sendShare;
+        if (!isActive) sendShare = '<span class="small">inativo</span>';
+        else if (activeTotalW > 0) sendShare = `<span class="small">${Math.round((weight / activeTotalW) * 100)}% do tráfego</span>`;
+        else sendShare = `<span class="small">${Math.round(100 / Math.max(1, active))}% (igual)</span>`;
+
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>
             <div class="num">${escapeHtml(l.label)} ${isTop ? '<span class="pill top">🔥 Mais procurado</span>' : ''}</div>
             <div class="small">${escapeHtml(l.number || '')}</div>
+          </td>
+          <td style="text-align:center;">
+            <input type="number" min="0" step="1" value="${weight}" data-weight="${l.id}"
+              style="width:62px;background:#0c2129;border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:8px;color:#fff;font-family:inherit;text-align:center;">
+            <div style="margin-top:4px;">${sendShare}</div>
           </td>
           <td class="hide-m"><span class="num">${clicks}</span></td>
           <td class="hide-m">
@@ -264,7 +294,7 @@
           </td>
           <td style="text-align:center;">
             <label class="toggle">
-              <input type="checkbox" ${l.active !== false ? 'checked' : ''} data-toggle="${l.id}">
+              <input type="checkbox" ${isActive ? 'checked' : ''} data-toggle="${l.id}">
               <span class="slider"></span>
             </label>
           </td>
@@ -278,6 +308,12 @@
       });
 
       // bind ações
+      body.querySelectorAll('[data-weight]').forEach(inp => {
+        inp.addEventListener('change', () => {
+          const v = Math.max(0, parseInt(inp.value, 10) || 0);
+          updateDoc(doc(db, 'whatsapp_links', inp.dataset.weight), { weight: v });
+        });
+      });
       body.querySelectorAll('[data-toggle]').forEach(inp => {
         inp.addEventListener('change', () => {
           updateDoc(doc(db, 'whatsapp_links', inp.dataset.toggle), { active: inp.checked });

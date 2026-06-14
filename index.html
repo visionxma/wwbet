@@ -294,18 +294,33 @@
 
       if (!links.length) { window.location.href = FALLBACK; return; }
 
-      // 2) Round-robin: pega o próximo índice de forma atômica
-      const counterRef = doc(db, 'meta', 'counter');
-      let idx = 0;
-      await runTransaction(db, async (t) => {
-        const c = await t.get(counterRef);
-        const cur = (c.exists() && typeof c.data().value === 'number') ? c.data().value : 0;
-        idx = cur % links.length;
-        t.set(counterRef, { value: cur + 1 }, { merge: true });
-      });
+      // 2) Escolhe o número
+      const weights = links.map(d => Math.max(0, Number(d.data().weight) || 0));
+      const totalW = weights.reduce((a, b) => a + b, 0);
+      let chosen;
+
+      if (totalW > 0) {
+        // ---- Distribuição por PORCENTAGEM (peso) ----
+        let r = Math.random() * totalW;
+        for (let i = 0; i < links.length; i++) {
+          r -= weights[i];
+          if (r < 0) { chosen = links[i]; break; }
+        }
+        if (!chosen) chosen = links[links.length - 1];
+      } else {
+        // ---- Sem pesos definidos: rodízio igual (round-robin) ----
+        const counterRef = doc(db, 'meta', 'counter');
+        let idx = 0;
+        await runTransaction(db, async (t) => {
+          const c = await t.get(counterRef);
+          const cur = (c.exists() && typeof c.data().value === 'number') ? c.data().value : 0;
+          idx = cur % links.length;
+          t.set(counterRef, { value: cur + 1 }, { merge: true });
+        });
+        chosen = links[idx];
+      }
 
       // 3) Registra o clique no número escolhido (não bloqueia o redirecionamento)
-      const chosen = links[idx];
       updateDoc(chosen.ref, { clicks: increment(1), lastClick: serverTimestamp() }).catch(() => {});
 
       // 4) Redireciona
