@@ -4,6 +4,24 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Master Green</title>
+
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '1492413359592687');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=1492413359592687&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
@@ -283,6 +301,19 @@
   // Link de fallback caso o Firebase ainda não tenha nenhum número cadastrado.
   const FALLBACK = "https://wa.me/";
 
+  // Dispara o evento Lead no Meta Pixel e só então redireciona — assim o
+  // Pixel tem tempo de enviar o evento antes de a página sair do ar.
+  function irParaWhatsApp(url) {
+    let saiu = false;
+    const sair = () => { if (saiu) return; saiu = true; window.location.href = url; };
+    if (typeof fbq === 'function') {
+      fbq('track', 'Lead', {}, { eventCallback: sair, eventCallbackTimeout: 1200 });
+      setTimeout(sair, 1200); // fallback caso o Pixel esteja bloqueado (adblock)
+    } else {
+      sair();
+    }
+  }
+
   async function goToWhatsApp(ev) {
     if (ev) ev.preventDefault();
     try {
@@ -292,7 +323,7 @@
         .filter(d => d.data().active !== false)
         .sort((a, b) => (a.data().order || 0) - (b.data().order || 0));
 
-      if (!links.length) { window.location.href = FALLBACK; return; }
+      if (!links.length) { irParaWhatsApp(FALLBACK); return; }
 
       // 2) Escolhe o número
       const weights = links.map(d => Math.max(0, Number(d.data().weight) || 0));
@@ -323,11 +354,11 @@
       // 3) Registra o clique no número escolhido (não bloqueia o redirecionamento)
       updateDoc(chosen.ref, { clicks: increment(1), lastClick: serverTimestamp() }).catch(() => {});
 
-      // 4) Redireciona
-      window.location.href = chosen.data().url;
+      // 4) Redireciona (disparando o Lead antes de sair)
+      irParaWhatsApp(chosen.data().url);
     } catch (e) {
       console.error('Erro no distribuidor de WhatsApp:', e);
-      window.location.href = FALLBACK;
+      irParaWhatsApp(FALLBACK);
     }
   }
 
