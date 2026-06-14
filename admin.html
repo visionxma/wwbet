@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel Admin — Master Green</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{ --green:#1dfc50; --green-dark:#0bbd3a; --bg:#06161b; --bg-2:#00202b; --bg-3:#0a2a35; --ink:#051945; --red:#ff5a5a; }
+  *,*::before,*::after{ box-sizing:border-box; margin:0; padding:0; }
+  body{ font-family:'Sora',sans-serif; background:var(--bg); color:#fff; min-height:100vh; }
+  a{ color:var(--green); }
+  .wrap{ max-width:900px; margin:0 auto; padding:24px 18px 60px; }
+
+  header.top{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:28px; flex-wrap:wrap; }
+  header.top .brand{ display:flex; align-items:center; gap:10px; font-weight:800; font-size:20px; }
+  header.top .brand .logo{ width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--green-dark));display:flex;align-items:center;justify-content:center;color:var(--ink);font-weight:800; }
+  .btn{ font-family:inherit; cursor:pointer; border:none; border-radius:10px; font-weight:700; padding:12px 18px; font-size:14px; transition:transform .15s, box-shadow .15s, background .15s; }
+  .btn:hover{ transform:translateY(-1px); }
+  .btn-green{ background:linear-gradient(180deg,var(--green),var(--green-dark)); color:var(--ink); }
+  .btn-ghost{ background:transparent; border:1px solid rgba(255,255,255,.25); color:#fff; }
+  .btn-red{ background:rgba(255,90,90,.14); border:1px solid rgba(255,90,90,.5); color:var(--red); }
+  .btn-sm{ padding:8px 12px; font-size:13px; }
+
+  /* LOGIN */
+  #loginView{ max-width:380px; margin:8vh auto 0; background:linear-gradient(180deg,var(--bg-3),#06161b); border:1px solid rgba(29,252,80,.25); border-radius:20px; padding:34px 28px; box-shadow:0 30px 80px rgba(0,0,0,.5); }
+  #loginView h1{ font-size:22px; margin-bottom:6px; text-align:center; }
+  #loginView p.sub{ font-size:13px; color:rgba(255,255,255,.6); text-align:center; margin-bottom:24px; }
+  .field{ margin-bottom:14px; }
+  .field label{ display:block; font-size:12px; color:rgba(255,255,255,.7); margin-bottom:6px; }
+  .field input{ width:100%; background:#0c2129; border:1px solid rgba(255,255,255,.14); border-radius:10px; padding:13px 14px; color:#fff; font-family:inherit; font-size:14px; }
+  .field input:focus{ outline:none; border-color:var(--green); }
+  .err{ color:var(--red); font-size:13px; margin-top:8px; min-height:18px; text-align:center; }
+
+  /* PANEL */
+  #panelView{ display:none; }
+  .cards{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:26px; }
+  .scard{ background:var(--bg-2); border:1px solid rgba(255,255,255,.07); border-radius:14px; padding:18px; }
+  .scard .lbl{ font-size:12px; color:rgba(255,255,255,.6); }
+  .scard .val{ font-size:30px; font-weight:800; color:var(--green); line-height:1.1; margin-top:6px; }
+  .scard .val.white{ color:#fff; }
+
+  .panel-box{ background:var(--bg-2); border:1px solid rgba(255,255,255,.07); border-radius:16px; padding:22px; margin-bottom:22px; }
+  .panel-box h2{ font-size:16px; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+
+  .add-grid{ display:grid; grid-template-columns:1.2fr 1fr 1.6fr auto; gap:10px; align-items:end; }
+  .add-grid .field{ margin-bottom:0; }
+
+  table{ width:100%; border-collapse:collapse; }
+  th,td{ text-align:left; padding:13px 10px; font-size:14px; border-bottom:1px solid rgba(255,255,255,.07); vertical-align:middle; }
+  th{ font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:rgba(255,255,255,.5); font-weight:700; }
+  td .num{ font-weight:700; }
+  td .small{ font-size:12px; color:rgba(255,255,255,.55); }
+  .pill{ display:inline-block; font-size:11px; font-weight:700; padding:4px 9px; border-radius:999px; }
+  .pill.on{ background:rgba(29,252,80,.15); color:var(--green); border:1px solid rgba(29,252,80,.4); }
+  .pill.off{ background:rgba(255,90,90,.12); color:var(--red); border:1px solid rgba(255,90,90,.4); }
+  .pill.top{ background:rgba(255,196,0,.15); color:#ffc400; border:1px solid rgba(255,196,0,.4); margin-left:6px; }
+  .bar{ height:6px; background:rgba(255,255,255,.1); border-radius:6px; overflow:hidden; margin-top:6px; max-width:160px; }
+  .bar > span{ display:block; height:100%; background:linear-gradient(90deg,var(--green),var(--green-dark)); }
+  .row-actions{ display:flex; gap:6px; justify-content:flex-end; }
+  .empty{ text-align:center; color:rgba(255,255,255,.5); padding:26px; font-size:14px; }
+
+  .toggle{ position:relative; display:inline-block; width:42px; height:24px; cursor:pointer; }
+  .toggle input{ display:none; }
+  .toggle .slider{ position:absolute; inset:0; background:rgba(255,255,255,.18); border-radius:999px; transition:.2s; }
+  .toggle .slider::before{ content:''; position:absolute; width:18px; height:18px; left:3px; top:3px; background:#fff; border-radius:50%; transition:.2s; }
+  .toggle input:checked + .slider{ background:var(--green); }
+  .toggle input:checked + .slider::before{ transform:translateX(18px); }
+
+  .hint{ font-size:12px; color:rgba(255,255,255,.5); margin-top:10px; line-height:1.6; }
+
+  @media (max-width:680px){
+    .cards{ grid-template-columns:1fr; }
+    .add-grid{ grid-template-columns:1fr; }
+    .row-actions{ flex-direction:column; }
+    th.hide-m, td.hide-m{ display:none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ===================== LOGIN ===================== -->
+  <div id="loginView">
+    <h1>Painel Master Green</h1>
+    <p class="sub">Acesso restrito ao administrador</p>
+    <form id="loginForm">
+      <div class="field">
+        <label>E-mail</label>
+        <input type="email" id="email" autocomplete="username" required>
+      </div>
+      <div class="field">
+        <label>Senha</label>
+        <input type="password" id="password" autocomplete="current-password" required>
+      </div>
+      <button class="btn btn-green" type="submit" style="width:100%;margin-top:6px;">Entrar</button>
+      <div class="err" id="loginErr"></div>
+    </form>
+  </div>
+
+  <!-- ===================== PAINEL ===================== -->
+  <div id="panelView">
+    <header class="top">
+      <div class="brand"><span class="logo">MG</span> Painel de WhatsApp</div>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <span id="userEmail" class="small" style="font-size:13px;color:rgba(255,255,255,.6);"></span>
+        <button class="btn btn-ghost btn-sm" id="logoutBtn">Sair</button>
+      </div>
+    </header>
+
+    <div class="cards">
+      <div class="scard"><div class="lbl">Total de cliques</div><div class="val" id="statTotal">0</div></div>
+      <div class="scard"><div class="lbl">Números ativos</div><div class="val white" id="statActive">0</div></div>
+      <div class="scard"><div class="lbl">Mais procurado</div><div class="val white" id="statTop" style="font-size:18px;">—</div></div>
+    </div>
+
+    <!-- Adicionar número -->
+    <div class="panel-box">
+      <h2>➕ Adicionar WhatsApp</h2>
+      <form id="addForm" class="add-grid">
+        <div class="field">
+          <label>Rótulo (ex.: Atendente 1)</label>
+          <input type="text" id="addLabel" placeholder="Atendente 1" required>
+        </div>
+        <div class="field">
+          <label>Número (com DDI+DDD)</label>
+          <input type="text" id="addNumber" placeholder="5599999999999" required>
+        </div>
+        <div class="field">
+          <label>Mensagem inicial (opcional)</label>
+          <input type="text" id="addMsg" placeholder="Olá! Vim pela página do Master Green">
+        </div>
+        <button class="btn btn-green" type="submit">Adicionar</button>
+      </form>
+      <div class="hint">O número deve ter código do país + DDD, só dígitos. Ex.: Brasil 55 + DDD 99 + número → <b>5599999999999</b>.</div>
+    </div>
+
+    <!-- Lista de números -->
+    <div class="panel-box">
+      <h2>📱 Números cadastrados <span class="small" style="font-weight:400;font-size:12px;">(rodízio igual entre os ativos)</span></h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Rótulo / Número</th>
+            <th class="hide-m">Cliques</th>
+            <th class="hide-m">Participação</th>
+            <th style="text-align:center;">Ativo</th>
+            <th style="text-align:right;">Ações</th>
+          </tr>
+        </thead>
+        <tbody id="linksBody"></tbody>
+      </table>
+      <div class="empty" id="emptyMsg" style="display:none;">Nenhum número cadastrado ainda. Adicione o primeiro acima. 👆</div>
+    </div>
+
+  </div>
+</div>
+
+<script type="module">
+  import { firebaseConfig } from './firebase-config.js';
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import {
+    getFirestore, collection, onSnapshot, addDoc, deleteDoc, updateDoc, doc, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const linksCol = collection(db, 'whatsapp_links');
+
+  const $ = (id) => document.getElementById(id);
+
+  // ---------- LOGIN ----------
+  $('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    $('loginErr').textContent = '';
+    try {
+      await signInWithEmailAndPassword(auth, $('email').value.trim(), $('password').value);
+    } catch (err) {
+      const msgs = {
+        'auth/invalid-credential': 'E-mail ou senha inválidos.',
+        'auth/invalid-email': 'E-mail ou senha inválidos.',
+        'auth/wrong-password': 'E-mail ou senha inválidos.',
+        'auth/user-not-found': 'Usuário não cadastrado no Firebase Authentication.',
+        'auth/operation-not-allowed': 'Ative "E-mail/senha" em Authentication → Sign-in method.',
+        'auth/network-request-failed': 'Falha de rede. Abra a página por http/https (não pelo file://).',
+        'auth/unauthorized-domain': 'Domínio não autorizado. Adicione-o em Authentication → Settings → Domínios autorizados.',
+        'auth/configuration-not-found': 'Authentication não configurado. Ative o método E-mail/senha no console.'
+      };
+      $('loginErr').textContent = (msgs[err.code] || 'Erro ao entrar') + '  [' + err.code + ']';
+      console.error('Login error:', err);
+    }
+  });
+  $('logoutBtn').addEventListener('click', () => signOut(auth));
+
+  let unsub = null;
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      $('loginView').style.display = 'none';
+      $('panelView').style.display = 'block';
+      $('userEmail').textContent = user.email;
+      if (!unsub) unsub = listenLinks();
+    } else {
+      $('loginView').style.display = 'block';
+      $('panelView').style.display = 'none';
+      if (unsub) { unsub(); unsub = null; }
+    }
+  });
+
+  // ---------- ADICIONAR ----------
+  $('addForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const label = $('addLabel').value.trim();
+    const number = $('addNumber').value.replace(/\D/g, '');
+    const msg = $('addMsg').value.trim();
+    if (!label || !number) return;
+    const url = 'https://wa.me/' + number + (msg ? '?text=' + encodeURIComponent(msg) : '');
+    await addDoc(linksCol, {
+      label, number, message: msg, url,
+      active: true, clicks: 0,
+      order: Date.now(), createdAt: serverTimestamp()
+    });
+    e.target.reset();
+  });
+
+  // ---------- LISTAR (tempo real) ----------
+  function listenLinks() {
+    return onSnapshot(linksCol, (snap) => {
+      const links = snap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => (a.order || 0) - (b.order || 0));
+
+      const total = links.reduce((s, l) => s + (l.clicks || 0), 0);
+      const active = links.filter(l => l.active !== false).length;
+      const top = [...links].sort((a, b) => (b.clicks || 0) - (a.clicks || 0))[0];
+
+      $('statTotal').textContent = total;
+      $('statActive').textContent = active;
+      $('statTop').textContent = (top && (top.clicks || 0) > 0) ? top.label : '—';
+
+      const body = $('linksBody');
+      body.innerHTML = '';
+      $('emptyMsg').style.display = links.length ? 'none' : 'block';
+
+      const maxClicks = Math.max(1, ...links.map(l => l.clicks || 0));
+
+      links.forEach(l => {
+        const clicks = l.clicks || 0;
+        const pct = total ? Math.round((clicks / total) * 100) : 0;
+        const isTop = top && top.id === l.id && clicks > 0;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>
+            <div class="num">${escapeHtml(l.label)} ${isTop ? '<span class="pill top">🔥 Mais procurado</span>' : ''}</div>
+            <div class="small">${escapeHtml(l.number || '')}</div>
+          </td>
+          <td class="hide-m"><span class="num">${clicks}</span></td>
+          <td class="hide-m">
+            <span class="small">${pct}%</span>
+            <div class="bar"><span style="width:${Math.round((clicks / maxClicks) * 100)}%"></span></div>
+          </td>
+          <td style="text-align:center;">
+            <label class="toggle">
+              <input type="checkbox" ${l.active !== false ? 'checked' : ''} data-toggle="${l.id}">
+              <span class="slider"></span>
+            </label>
+          </td>
+          <td>
+            <div class="row-actions">
+              <button class="btn btn-ghost btn-sm" data-test="${l.url}">Testar</button>
+              <button class="btn btn-red btn-sm" data-del="${l.id}" data-label="${escapeHtml(l.label)}">Excluir</button>
+            </div>
+          </td>`;
+        body.appendChild(tr);
+      });
+
+      // bind ações
+      body.querySelectorAll('[data-toggle]').forEach(inp => {
+        inp.addEventListener('change', () => {
+          updateDoc(doc(db, 'whatsapp_links', inp.dataset.toggle), { active: inp.checked });
+        });
+      });
+      body.querySelectorAll('[data-del]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (confirm('Excluir o número "' + btn.dataset.label + '"? Os cliques registrados também serão perdidos.')) {
+            deleteDoc(doc(db, 'whatsapp_links', btn.dataset.del));
+          }
+        });
+      });
+      body.querySelectorAll('[data-test]').forEach(btn => {
+        btn.addEventListener('click', () => window.open(btn.dataset.test, '_blank'));
+      });
+    });
+  }
+
+  function escapeHtml(s) {
+    return String(s || '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  }
+</script>
+</body>
+</html>

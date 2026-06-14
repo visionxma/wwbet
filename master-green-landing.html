@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Master Green</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --green:#1dfc50;
+    --green-dark:#0bbd3a;
+    --bg:#06161b;
+    --bg-2:#00202b;
+    --bg-3:#0a2a35;
+    --ink:#051945;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html{ scroll-behavior:smooth; }
+  body { font-family: 'Sora', sans-serif; background: var(--bg); overflow-x: hidden; color:#fff; }
+  img{ max-width:100%; display:block; }
+
+  .container{ max-width:1080px; margin:0 auto; padding:0 20px; }
+
+  /* ===== HERO ===== */
+  .hero {
+    position: relative;
+    background:
+      linear-gradient(180deg, rgba(6,22,27,.55) 0%, rgba(6,22,27,.80) 55%, var(--bg) 100%),
+      url('https://especialista01.fun/wp-content/uploads/2022/07/bg-ROBOGREEN-desktop.png');
+    background-size: cover;
+    background-position: center top;
+    padding: 90px 0 80px;
+  }
+  .hero-grid{
+    display:flex;
+    align-items:center;
+    min-height:600px;
+  }
+  .hero-content{ max-width:600px; }
+  .hero h1 {
+    font-size: 52px;
+    font-weight: 800;
+    color: #fff;
+    text-transform: uppercase;
+    line-height: 1.02;
+    margin-bottom: 18px;
+    letter-spacing: -1px;
+  }
+  .hero h1 .hl{ color:var(--green); text-shadow:0 0 30px rgba(29,252,80,.45); }
+  .hero .subtitle {
+    font-size: 22px; font-weight: 400; color: rgba(255,255,255,.9);
+    line-height: 1.5; margin-bottom: 30px; max-width:480px;
+  }
+
+  /* ===== BOTÃO CTA ===== */
+  .btn-whatsapp {
+    display: inline-flex; align-items:center; justify-content:center; gap:10px;
+    background: linear-gradient(180deg,var(--green),var(--green-dark));
+    color: var(--ink);
+    font-family: 'Sora', sans-serif;
+    font-size: 18px; font-weight: 800;
+    text-decoration: none; text-transform: uppercase; letter-spacing:.5px;
+    padding: 20px 34px; border-radius: 10px;
+    text-align: center; cursor: pointer; border: none;
+    width: 100%; max-width: 420px;
+    box-shadow: 0 10px 30px rgba(29,252,80,.30);
+    transition: transform .18s ease, box-shadow .18s ease;
+    animation: pulse 2.2s infinite;
+  }
+  .btn-whatsapp:hover { transform: translateY(-2px) scale(1.01); box-shadow: 0 14px 38px rgba(29,252,80,.55); }
+  .btn-whatsapp svg{ width:22px;height:22px;fill:var(--ink); }
+  @keyframes pulse {
+    0% { box-shadow: 0 10px 30px rgba(29,252,80,.30), 0 0 0 0 rgba(29,252,80,.55); }
+    70% { box-shadow: 0 10px 30px rgba(29,252,80,.30), 0 0 0 16px rgba(29,252,80,0); }
+    100% { box-shadow: 0 10px 30px rgba(29,252,80,.30), 0 0 0 0 rgba(29,252,80,0); }
+  }
+
+  .social-proof { display: flex; align-items: center; gap: 12px; margin-top: 24px; }
+  .social-proof img { width: 96px; height: auto; object-fit: contain; }
+  .social-proof-text { font-size: 13px; color: rgba(255,255,255,.82); line-height: 1.5; max-width: 230px; }
+
+  /* ===== SECTIONS ===== */
+  .section{ padding:64px 0; }
+  .section.alt{ background:var(--bg-2); }
+  .sec-head{ text-align:center; max-width:760px; margin:0 auto 44px; }
+  .sec-head h2{ font-size:36px; font-weight:600; line-height:1.18; text-transform:uppercase; }
+  .sec-head h2 .hl{ color:var(--green); }
+
+  /* ===== TESTIMONIALS ===== */
+  .carousel-wrapper { position: relative; max-width: 960px; margin: 0 auto; }
+  .carousel-viewport{ overflow:hidden; }
+  .carousel-track { display: flex; gap: 18px; transition: transform 0.5s cubic-bezier(0.4,0,0.2,1); will-change: transform; }
+  .carousel-slide { flex: 0 0 calc(33.333% - 12px); min-width: 0; }
+  .carousel-slide img { width: 100%; height: 360px; border-radius: 14px; object-fit: cover; object-position:top; border:1px solid rgba(255,255,255,.08); }
+  .carousel-btn {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    background: rgba(6,22,27,.85); border: 2px solid var(--green); color: var(--green);
+    width: 46px; height: 46px; border-radius: 50%; font-size: 22px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; z-index: 10; transition: all .2s;
+  }
+  .carousel-btn:hover { background: var(--green); color:var(--ink); }
+  .carousel-btn.prev { left: -23px; }
+  .carousel-btn.next { right: -23px; }
+  .carousel-dots { display: flex; justify-content: center; gap: 8px; margin-top: 26px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.25); cursor: pointer; transition: all 0.3s; }
+  .dot.active { background: var(--green); width:26px; border-radius:6px; }
+
+  /* ===== CTA SECTION ===== */
+  .cta{
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(29,252,80,.12), transparent 60%),
+      var(--bg);
+    padding:72px 0;
+    text-align:center;
+  }
+  .cta .box{
+    max-width:760px; margin:0 auto;
+    background:linear-gradient(180deg,var(--bg-3),#06161b);
+    border:1px solid rgba(29,252,80,.28);
+    border-radius:24px; padding:48px 34px;
+    box-shadow:0 30px 80px rgba(0,0,0,.5);
+  }
+  .cta h3{ font-size:30px; font-weight:700; line-height:1.25; margin-bottom:26px; text-transform:uppercase; }
+  .cta h3 .hl{ color:var(--green); }
+  .cta p{ font-size:17px; color:rgba(255,255,255,.82); line-height:1.7; max-width:600px; margin:0 auto 18px; }
+  .cta p strong{ color:#fff; font-weight:700; }
+  .cta .btn-whatsapp{ margin:30px auto 0; }
+
+  /* ===== FOOTER ===== */
+  footer { background: var(--bg-2); padding: 30px 20px; text-align: center; border-top: 1px solid rgba(29,252,80,0.15); }
+  footer p { font-size: 14px; color: rgba(255,255,255,0.65); margin-bottom: 6px; }
+  footer a { color: rgba(255,255,255,0.65); text-decoration: none; }
+  footer a:hover { color: var(--green); }
+
+  /* ===== FLOAT WHATSAPP ===== */
+  .float-wpp{
+    position:fixed; right:20px; bottom:20px; z-index:60;
+    width:60px;height:60px;border-radius:50%;
+    background:#25D366; display:flex;align-items:center;justify-content:center;
+    box-shadow:0 8px 24px rgba(0,0,0,.4);
+    animation:pulse 2.2s infinite;
+  }
+  .float-wpp svg{ width:32px;height:32px;fill:#fff; }
+
+  @media (max-width: 900px){
+    .hero-grid{ min-height:auto; }
+    .hero h1{ font-size:40px; }
+    .carousel-slide { flex: 0 0 100%; }
+    .carousel-slide img{ height:auto; max-height:480px; object-fit:contain; }
+    .carousel-btn.prev{ left:6px; } .carousel-btn.next{ right:6px; }
+  }
+  @media (max-width: 560px){
+    .hero{ padding:44px 0 34px; }
+    .hero h1{ font-size:33px; }
+    .hero .subtitle{ font-size:18px; }
+    .sec-head h2{ font-size:26px; }
+    .cta .box{ padding:34px 20px; }
+    .cta h3{ font-size:23px; }
+    .cta p{ font-size:16px; }
+    .btn-whatsapp{ font-size:16px; padding:18px 20px; }
+    .section{ padding:48px 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO SECTION -->
+<section class="hero">
+  <div class="container hero-grid">
+    <div class="hero-content">
+      <h1>CHEGA DE <span class="hl">QUEBRAR A BANCA!</span></h1>
+      <p class="subtitle">Fale comigo no Whatsapp e tenha lucros consistentes!</p>
+      <a href="#" class="btn-whatsapp js-wpp">
+        <svg viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 018.413 3.488 11.82 11.82 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.978-.945zm5.586-5.443z"/></svg>
+        FALAR NO WHATSAPP
+      </a>
+      <div class="social-proof">
+        <img src="https://especialista01.fun/wp-content/uploads/2022/07/alunos.png" alt="Alunos">
+        <span class="social-proof-text">Mais de 600 alunos tendo resultados e realizando seus sonhos graças ao Master Green</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS SECTION -->
+<section class="section alt">
+  <div class="container">
+    <div class="sec-head">
+      <h2>O QUE ESTÃO DIZENDO SOBRE O <span class="hl">MS GREEN</span></h2>
+    </div>
+    <div class="carousel-wrapper">
+      <div class="carousel-viewport">
+        <div class="carousel-track" id="carouselTrack">
+          <div class="carousel-slide"><img src="https://especialista01.fun/wp-content/uploads/2022/07/Frame-3.png" alt="Depoimento 1"></div>
+          <div class="carousel-slide"><img src="https://especialista01.fun/wp-content/uploads/2022/07/Frame-4.png" alt="Depoimento 2"></div>
+          <div class="carousel-slide"><img src="https://especialista01.fun/wp-content/uploads/2022/07/Frame-5.png" alt="Depoimento 3"></div>
+          <div class="carousel-slide"><img src="https://especialista01.fun/wp-content/uploads/2022/07/Frame-6.png" alt="Depoimento 4"></div>
+        </div>
+      </div>
+      <button class="carousel-btn prev" id="prevBtn">&#8249;</button>
+      <button class="carousel-btn next" id="nextBtn">&#8250;</button>
+    </div>
+    <div class="carousel-dots" id="carouselDots"></div>
+  </div>
+</section>
+
+<!-- CTA SECTION -->
+<section class="cta">
+  <div class="container">
+    <div class="box">
+      <h3>APRENDA A FATURAR COM APOSTAS ESPORTIVAS <span class="hl">MESMO QUE SEJA UM COMPLETO INICIANTE</span></h3>
+      <p>A nossa metodologia foi especialmente estruturada para que <strong>QUALQUER PESSOA</strong> possa lucrar no mercado de apostas esportivas</p>
+      <p>Por isso, dentro do <strong>MASTER GREEN</strong> você vai aprender o passo a passo para começar no mercado de apostas esportivas do absoluto zero e lucrar todos os dias de forma simples, conseguindo uma renda extra</p>
+      <a href="#" class="btn-whatsapp js-wpp">
+        <svg viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 018.413 3.488 11.82 11.82 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.978-.945zm5.586-5.443z"/></svg>
+        FALAR NO WHATSAPP
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>Master Green – todos os direitos reservados</p>
+  <p><a href="#">Política de privacidade</a> – <a href="#">Termos de uso</a></p>
+</footer>
+
+<!-- FLOAT WHATSAPP -->
+<a href="#" class="float-wpp js-wpp" aria-label="WhatsApp">
+  <svg viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 018.413 3.488 11.82 11.82 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.978-.945zm5.586-5.443z"/></svg>
+</a>
+
+<script>
+// ===== CAROUSEL =====
+(function() {
+  const track = document.getElementById('carouselTrack');
+  const slides = track.querySelectorAll('.carousel-slide');
+  const dotsContainer = document.getElementById('carouselDots');
+  const total = slides.length;
+  let current = 0;
+  let visible = window.innerWidth <= 900 ? 1 : 3;
+
+  slides.forEach((_, i) => {
+    const d = document.createElement('span');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.addEventListener('click', () => goTo(i));
+    dotsContainer.appendChild(d);
+  });
+
+  function goTo(idx) {
+    const maxIdx = Math.max(0, total - visible);
+    current = Math.max(0, Math.min(idx, maxIdx));
+    const slideWidth = slides[0].offsetWidth + 18;
+    track.style.transform = 'translateX(-' + (current * slideWidth) + 'px)';
+    document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === current));
+  }
+
+  document.getElementById('prevBtn').addEventListener('click', () => goTo(current - 1));
+  document.getElementById('nextBtn').addEventListener('click', () => goTo(current + 1));
+
+  window.addEventListener('resize', () => {
+    visible = window.innerWidth <= 900 ? 1 : 3;
+    goTo(current);
+  });
+
+  // Auto-play
+  setInterval(() => goTo(current + 1 > total - visible ? 0 : current + 1), 3800);
+})();
+</script>
+
+<!-- ===== DISTRIBUIDOR DE WHATSAPP (round-robin via Firebase) ===== -->
+<script type="module">
+  import { firebaseConfig } from './firebase-config.js';
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getFirestore, collection, getDocs, doc,
+    runTransaction, updateDoc, increment, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // Link de fallback caso o Firebase ainda não tenha nenhum número cadastrado.
+  const FALLBACK = "https://wa.me/";
+
+  async function goToWhatsApp(ev) {
+    if (ev) ev.preventDefault();
+    try {
+      // 1) Busca os números ativos (filtra e ordena no cliente — sem precisar de índice)
+      const snap = await getDocs(collection(db, 'whatsapp_links'));
+      const links = snap.docs
+        .filter(d => d.data().active !== false)
+        .sort((a, b) => (a.data().order || 0) - (b.data().order || 0));
+
+      if (!links.length) { window.location.href = FALLBACK; return; }
+
+      // 2) Round-robin: pega o próximo índice de forma atômica
+      const counterRef = doc(db, 'meta', 'counter');
+      let idx = 0;
+      await runTransaction(db, async (t) => {
+        const c = await t.get(counterRef);
+        const cur = (c.exists() && typeof c.data().value === 'number') ? c.data().value : 0;
+        idx = cur % links.length;
+        t.set(counterRef, { value: cur + 1 }, { merge: true });
+      });
+
+      // 3) Registra o clique no número escolhido (não bloqueia o redirecionamento)
+      const chosen = links[idx];
+      updateDoc(chosen.ref, { clicks: increment(1), lastClick: serverTimestamp() }).catch(() => {});
+
+      // 4) Redireciona
+      window.location.href = chosen.data().url;
+    } catch (e) {
+      console.error('Erro no distribuidor de WhatsApp:', e);
+      window.location.href = FALLBACK;
+    }
+  }
+
+  window.goToWhatsApp = goToWhatsApp;
+  document.querySelectorAll('.js-wpp').forEach(el => el.addEventListener('click', goToWhatsApp));
+</script>
+</body>
+</html>
