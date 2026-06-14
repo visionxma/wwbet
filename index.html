@@ -301,12 +301,21 @@ src="https://www.facebook.com/tr?id=1492413359592687&ev=PageView&noscript=1"
   // Link de fallback caso o Firebase ainda não tenha nenhum número cadastrado.
   const FALLBACK = "https://wa.me/";
 
+  // Dispara o evento Lead no Meta Pixel e só então redireciona — assim o
+  // Pixel tem tempo de enviar o evento antes de a página sair do ar.
+  function irParaWhatsApp(url) {
+    let saiu = false;
+    const sair = () => { if (saiu) return; saiu = true; window.location.href = url; };
+    if (typeof fbq === 'function') {
+      fbq('track', 'Lead', {}, { eventCallback: sair, eventCallbackTimeout: 1200 });
+      setTimeout(sair, 1200); // fallback caso o Pixel esteja bloqueado (adblock)
+    } else {
+      sair();
+    }
+  }
+
   async function goToWhatsApp(ev) {
     if (ev) ev.preventDefault();
-
-    // Dispara o evento de Lead no Meta Pixel ao clicar no botão
-    if (typeof fbq === 'function') fbq('track', 'Lead');
-
     try {
       // 1) Busca os números ativos (filtra e ordena no cliente — sem precisar de índice)
       const snap = await getDocs(collection(db, 'whatsapp_links'));
@@ -314,7 +323,7 @@ src="https://www.facebook.com/tr?id=1492413359592687&ev=PageView&noscript=1"
         .filter(d => d.data().active !== false)
         .sort((a, b) => (a.data().order || 0) - (b.data().order || 0));
 
-      if (!links.length) { window.location.href = FALLBACK; return; }
+      if (!links.length) { irParaWhatsApp(FALLBACK); return; }
 
       // 2) Escolhe o número
       const weights = links.map(d => Math.max(0, Number(d.data().weight) || 0));
@@ -345,11 +354,11 @@ src="https://www.facebook.com/tr?id=1492413359592687&ev=PageView&noscript=1"
       // 3) Registra o clique no número escolhido (não bloqueia o redirecionamento)
       updateDoc(chosen.ref, { clicks: increment(1), lastClick: serverTimestamp() }).catch(() => {});
 
-      // 4) Redireciona
-      window.location.href = chosen.data().url;
+      // 4) Redireciona (disparando o Lead antes de sair)
+      irParaWhatsApp(chosen.data().url);
     } catch (e) {
       console.error('Erro no distribuidor de WhatsApp:', e);
-      window.location.href = FALLBACK;
+      irParaWhatsApp(FALLBACK);
     }
   }
 
