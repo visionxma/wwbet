@@ -44,7 +44,7 @@ src="https://www.facebook.com/tr?id=1492413359592687&ev=PageView&noscript=1"
     position: relative;
     background:
       linear-gradient(180deg, rgba(6,22,27,.55) 0%, rgba(6,22,27,.80) 55%, var(--bg) 100%),
-      url('https://especialista01.fun/wp-content/uploads/2022/07/bg-ROBOGREEN-desktop.png');
+      url('assets/bg-ROBOGREEN-desktop.webp');
     background-size: cover;
     background-position: center top;
     padding: 90px 0 80px;
@@ -193,7 +193,7 @@ src="https://www.facebook.com/tr?id=1492413359592687&ev=PageView&noscript=1"
         FALAR NO WHATSAPP
       </a>
       <div class="social-proof">
-        <img src="https://especialista01.fun/wp-content/uploads/2022/07/alunos.png" alt="Alunos">
+        <img src="assets/alunos.webp" alt="Alunos" width="93" height="38" loading="lazy">
         <span class="social-proof-text">Mais de 600 alunos tendo resultados e realizando seus sonhos graças ao Master Green</span>
       </div>
     </div>
@@ -209,10 +209,10 @@ src="https://www.facebook.com/tr?id=1492413359592687&ev=PageView&noscript=1"
     <div class="carousel-wrapper">
       <div class="carousel-viewport">
         <div class="carousel-track" id="carouselTrack">
-          <div class="carousel-slide"><img src="https://especialista01.fun/wp-content/uploads/2022/07/Frame-3.png" alt="Depoimento 1"></div>
-          <div class="carousel-slide"><img src="https://especialista01.fun/wp-content/uploads/2022/07/Frame-4.png" alt="Depoimento 2"></div>
-          <div class="carousel-slide"><img src="https://especialista01.fun/wp-content/uploads/2022/07/Frame-5.png" alt="Depoimento 3"></div>
-          <div class="carousel-slide"><img src="https://especialista01.fun/wp-content/uploads/2022/07/Frame-6.png" alt="Depoimento 4"></div>
+          <div class="carousel-slide"><img src="assets/Frame-3.webp" alt="Depoimento 1" width="656" height="1280" loading="lazy"></div>
+          <div class="carousel-slide"><img src="assets/Frame-4.webp" alt="Depoimento 2" width="656" height="1280" loading="lazy"></div>
+          <div class="carousel-slide"><img src="assets/Frame-5.webp" alt="Depoimento 3" width="656" height="1280" loading="lazy"></div>
+          <div class="carousel-slide"><img src="assets/Frame-6.webp" alt="Depoimento 4" width="656" height="1280" loading="lazy"></div>
         </div>
       </div>
       <button class="carousel-btn prev" id="prevBtn">&#8249;</button>
@@ -286,13 +286,13 @@ src="https://www.facebook.com/tr?id=1492413359592687&ev=PageView&noscript=1"
 })();
 </script>
 
-<!-- ===== DISTRIBUIDOR DE WHATSAPP (round-robin via Firebase) ===== -->
+<!-- ===== DISTRIBUIDOR DE WHATSAPP (pré-carregado, redirecionamento instantâneo) ===== -->
 <script type="module">
   import { firebaseConfig } from './firebase-config.js';
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import {
-    getFirestore, collection, getDocs, doc,
-    runTransaction, updateDoc, increment, serverTimestamp
+    getFirestore, collection, getDocs,
+    updateDoc, increment, serverTimestamp
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   const app = initializeApp(firebaseConfig);
@@ -301,65 +301,64 @@ src="https://www.facebook.com/tr?id=1492413359592687&ev=PageView&noscript=1"
   // Link de fallback caso o Firebase ainda não tenha nenhum número cadastrado.
   const FALLBACK = "https://wa.me/";
 
-  // Dispara o evento Lead no Meta Pixel e só então redireciona — assim o
-  // Pixel tem tempo de enviar o evento antes de a página sair do ar.
-  function irParaWhatsApp(url) {
-    let saiu = false;
-    const sair = () => { if (saiu) return; saiu = true; window.location.href = url; };
-    if (typeof fbq === 'function') {
-      fbq('track', 'Lead', {}, { eventCallback: sair, eventCallbackTimeout: 1200 });
-      setTimeout(sair, 1200); // fallback caso o Pixel esteja bloqueado (adblock)
-    } else {
-      sair();
+  // Os números são buscados UMA vez quando a página carrega e ficam em cache.
+  // Assim o clique no botão redireciona na hora, sem esperar a rede — era isso
+  // que fazia o usuário precisar clicar várias vezes.
+  let cachedLinks = null;
+  const ready = preloadLinks();
+
+  async function preloadLinks() {
+    try {
+      const snap = await getDocs(collection(db, 'whatsapp_links'));
+      cachedLinks = snap.docs
+        .filter(d => d.data().active !== false)
+        .map(d => ({ url: d.data().url, weight: Math.max(0, Number(d.data().weight) || 0), ref: d.ref }))
+        .filter(l => l.url);
+    } catch (e) {
+      console.error('Falha ao pré-carregar números do WhatsApp:', e);
+      cachedLinks = [];
     }
   }
 
-  async function goToWhatsApp(ev) {
-    if (ev) ev.preventDefault();
-    try {
-      // 1) Busca os números ativos (filtra e ordena no cliente — sem precisar de índice)
-      const snap = await getDocs(collection(db, 'whatsapp_links'));
-      const links = snap.docs
-        .filter(d => d.data().active !== false)
-        .sort((a, b) => (a.data().order || 0) - (b.data().order || 0));
-
-      if (!links.length) { irParaWhatsApp(FALLBACK); return; }
-
-      // 2) Escolhe o número
-      const weights = links.map(d => Math.max(0, Number(d.data().weight) || 0));
-      const totalW = weights.reduce((a, b) => a + b, 0);
-      let chosen;
-
-      if (totalW > 0) {
-        // ---- Distribuição por PORCENTAGEM (peso) ----
-        let r = Math.random() * totalW;
-        for (let i = 0; i < links.length; i++) {
-          r -= weights[i];
-          if (r < 0) { chosen = links[i]; break; }
-        }
-        if (!chosen) chosen = links[links.length - 1];
-      } else {
-        // ---- Sem pesos definidos: rodízio igual (round-robin) ----
-        const counterRef = doc(db, 'meta', 'counter');
-        let idx = 0;
-        await runTransaction(db, async (t) => {
-          const c = await t.get(counterRef);
-          const cur = (c.exists() && typeof c.data().value === 'number') ? c.data().value : 0;
-          idx = cur % links.length;
-          t.set(counterRef, { value: cur + 1 }, { merge: true });
-        });
-        chosen = links[idx];
-      }
-
-      // 3) Registra o clique no número escolhido (não bloqueia o redirecionamento)
-      updateDoc(chosen.ref, { clicks: increment(1), lastClick: serverTimestamp() }).catch(() => {});
-
-      // 4) Redireciona (disparando o Lead antes de sair)
-      irParaWhatsApp(chosen.data().url);
-    } catch (e) {
-      console.error('Erro no distribuidor de WhatsApp:', e);
-      irParaWhatsApp(FALLBACK);
+  // Escolhe um número: por peso (porcentagem) se houver, senão sorteio uniforme
+  // (estatisticamente equivalente ao rodízio, sem precisar de transação na rede).
+  function pickLink(links) {
+    if (!links || !links.length) return null;
+    const totalW = links.reduce((a, l) => a + l.weight, 0);
+    if (totalW > 0) {
+      let r = Math.random() * totalW;
+      for (const l of links) { r -= l.weight; if (r < 0) return l; }
+      return links[links.length - 1];
     }
+    return links[Math.floor(Math.random() * links.length)];
+  }
+
+  // Dispara o Lead no Pixel (via sendBeacon, sobrevive à navegação) e redireciona já.
+  function irParaWhatsApp(url) {
+    if (typeof fbq === 'function') { try { fbq('track', 'Lead'); } catch (e) {} }
+    window.location.href = url;
+  }
+
+  let navegando = false; // evita disparos duplicados em cliques repetidos
+  function goToWhatsApp(ev) {
+    if (ev) ev.preventDefault();
+    if (navegando) return;
+
+    const link = pickLink(cachedLinks);
+    if (link) {
+      navegando = true;
+      updateDoc(link.ref, { clicks: increment(1), lastClick: serverTimestamp() }).catch(() => {});
+      irParaWhatsApp(link.url);
+      return;
+    }
+
+    // Cache ainda não pronto (clique logo ao abrir a página): espera o preload.
+    navegando = true;
+    ready.then(() => {
+      const l = pickLink(cachedLinks);
+      if (l) updateDoc(l.ref, { clicks: increment(1), lastClick: serverTimestamp() }).catch(() => {});
+      irParaWhatsApp(l ? l.url : FALLBACK);
+    });
   }
 
   window.goToWhatsApp = goToWhatsApp;
